@@ -2,6 +2,7 @@ using System.Text;
 using Application.Activities;
 using Application.Interfaces;
 using API.Middleware;
+using AutoMapper;
 using Domain;
 using FluentValidation.AspNetCore;
 using Infrastructure.Security;
@@ -30,6 +31,7 @@ namespace API {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
             services.AddDbContext<DataContext>(opt => {
+                opt.UseLazyLoadingProxies();
                 opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddCors(opt => {
@@ -38,6 +40,8 @@ namespace API {
                 });
             });
             services.AddMediatR(typeof(List.Handler).Assembly);
+            //inject AutoMapper into Application project and tell it where the assemblies are located
+            services.AddAutoMapper(typeof(List.Handler));
             services.AddControllers(opt => {
                     //Every request requires a authticated user
                     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -56,6 +60,15 @@ namespace API {
             var identityBuilder = new IdentityBuilder(builder.UserType, builder.Services); //new instance
             identityBuilder.AddEntityFrameworkStores<DataContext>(); //Creates user stores
             identityBuilder.AddSignInManager<SignInManager<AppUser>>(); //creates and manages users from a service from identity core, helps with username and password
+
+            services.AddAuthorization(opt => {
+                opt.AddPolicy("IsActivityHost", policy => {
+                    policy.Requirements.Add(new IsHostRequirement());
+                });
+            });
+
+            //Add AuthHandler for Lifetime of operation and not the entirety of request
+            services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
 
             //This key needs to be hidden better and a random string
             //in terminal: dotnet user-secrets to set/list/clear/remove/init secrets - use enviroment vairables
