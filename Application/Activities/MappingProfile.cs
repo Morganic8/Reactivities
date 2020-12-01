@@ -11,7 +11,7 @@ namespace Application.Activities {
                 //d = destination property
                 //o = option
                 //s = source of the property
-                .ForMember(d => d.UserName, o => o.MapFrom(s => s.AppUser.UserName))
+                .ForMember(d => d.Username, o => o.MapFrom(s => s.AppUser.UserName))
                 .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.AppUser.DisplayName));
         }
     }
