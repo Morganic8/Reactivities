@@ -14,6 +14,8 @@ namespace Persistence {
 
         //Many to many Table
         public DbSet<UserActivity> UserActivities { get; set; }
+
+        public DbSet<Photo> Photos { get; set; }
         protected override void OnModelCreating(ModelBuilder builder) {
             //gives AppUser a primary key of a string - will error without it
             base.OnModelCreating(builder);
