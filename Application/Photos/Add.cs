@@ -26,10 +26,10 @@ namespace Application.Photos {
                 _photoAccessor = photoAccessor;
             }
 
-            //Unit is empty Object from Mediatr
             public async Task<Photo> Handle(Command request, CancellationToken cancellationToken) {
 
                 //handler logic
+                var result = request;
 
                 var photoUploadResult = _photoAccessor.AddPhoto(request.File);
 

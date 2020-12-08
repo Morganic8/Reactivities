@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import ActivityListItemAttendees from './ActivityListItemAttendees';
 
 const ActivityListItem: React.FC<{ activity: IActivity }> = ({ activity }) => {
+  //get host of activity
   const host = activity.attendees.filter((x) => x.isHost)[0];
 
   //get these values from store
@@ -26,10 +27,16 @@ const ActivityListItem: React.FC<{ activity: IActivity }> = ({ activity }) => {
               size="tiny"
               circular
               src={host.image || '/assets/user.png'}
+              style={{ marginBottom: 3 }}
             />
             <Item.Content>
               <Item.Header to={Link}>{activity.title}</Item.Header>
-              <Item.Description>Hosted by {host.displayName}</Item.Description>
+              <Item.Description>
+                Hosted by
+                <Link to={`/profile/${host.displayName}`}>
+                  {host.displayName}
+                </Link>
+              </Item.Description>
               {activity.isHost && (
                 <Item.Description>
                   <Label

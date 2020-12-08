@@ -37,7 +37,8 @@ namespace Infrastructure.Photos {
                     //telling cloudinary what we are passing up to it...a file
                     var uploadParams = new ImageUploadParams {
                     //the file to send
-                    File = new FileDescription(file.FileName, stream)
+                    File = new FileDescription(file.FileName, stream),
+                    Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
                     };
 
                     uploadResult = _cloudinary.Upload(uploadParams);
@@ -55,7 +56,11 @@ namespace Infrastructure.Photos {
         }
 
         public string DeletePhoto(string publicId) {
-            throw new System.NotImplementedException();
+            var deleteParams = new DeletionParams(publicId);
+
+            var result = _cloudinary.Destroy(deleteParams);
+
+            return result.Result == "ok" ? result.Result : null;
         }
     }
 }
