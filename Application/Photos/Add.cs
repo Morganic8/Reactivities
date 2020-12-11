@@ -29,8 +29,6 @@ namespace Application.Photos {
             public async Task<Photo> Handle(Command request, CancellationToken cancellationToken) {
 
                 //handler logic
-                var result = request;
-
                 var photoUploadResult = _photoAccessor.AddPhoto(request.File);
 
                 var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == _userAccessor.GetCurrentUsername());
