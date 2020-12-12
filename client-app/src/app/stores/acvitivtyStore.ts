@@ -1,4 +1,9 @@
-import { action, makeAutoObservable, runInAction } from 'mobx';
+import {
+  HubConnection,
+  HubConnectionBuilder,
+  LogLevel,
+} from '@microsoft/signalr';
+import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { SyntheticEvent } from 'react';
 import { toast } from 'react-toastify';
 import { history } from '../..';
@@ -16,6 +21,7 @@ export default class ActivityStore {
   loadingInitial = false;
   rootStore: RootStore;
   loading = false;
+  @observable.ref hubConnection: HubConnection | null = null;
 
   constructor(rootStore: RootStore) {
     makeAutoObservable(this);
@@ -28,6 +34,57 @@ export default class ActivityStore {
       Array.from(this.activityRegistry.values())
     );
   }
+
+  //Create Hub connection
+  @action createHubConnection = (activityId: string) => {
+    this.hubConnection = new HubConnectionBuilder()
+      .withUrl('http://localhost:5000/chat', {
+        //sends token as query
+        accessTokenFactory: () => this.rootStore.commonStore.token!,
+      })
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    this.hubConnection
+      .start()
+      .then(() => console.log(this.hubConnection!.state))
+      .then(() => {
+        console.log('Attempting to join group');
+        this.hubConnection!.invoke('AddToGroup', activityId);
+      })
+      .catch((error) => console.log('Error establishing connection', error));
+
+    this.hubConnection.on('ReceiveComment', (comment) => {
+      runInAction(() => {
+        this.activity!.comments.push(comment);
+      });
+    });
+
+    this.hubConnection.on('Send', (message) => {
+      toast.info(message);
+    });
+  };
+
+  //Stop Hub Connection
+  @action stopHubConnection = () => {
+    this.hubConnection!.invoke('RemoveFromGroup', this.activity!.id)
+      .then(() => {
+        this.hubConnection!.stop();
+      })
+      .then(() => console.log('Connection stopped'))
+      .catch((err) => console.log(err));
+  };
+
+  //form values
+  @action addComment = async (values: any) => {
+    values.activityId = this.activity!.id;
+    try {
+      //SendComment from ChatHub.cs
+      await this.hubConnection!.invoke('SendComment', values);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   groupActivitiesByDate(activities: IActivity[]) {
     const sortedActivities = activities.sort(
@@ -102,6 +159,7 @@ export default class ActivityStore {
       let attendees = [];
       attendees.push(attendee);
       activity.attendees = attendees;
+      activity.comments = [];
       activity.isHost = true;
       runInAction(() => {
         this.activityRegistry.set(activity.id, activity);

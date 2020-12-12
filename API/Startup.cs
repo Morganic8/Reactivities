@@ -1,7 +1,9 @@
 using System.Text;
+using System.Threading.Tasks;
 using Application.Activities;
 using Application.Interfaces;
 using API.Middleware;
+using API.SignalR;
 using AutoMapper;
 using Domain;
 using FluentValidation.AspNetCore;
@@ -37,12 +39,13 @@ namespace API {
             });
             services.AddCors(opt => {
                 opt.AddPolicy("CorsPolicy", policy => {
-                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000");
+                    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000").AllowCredentials();
                 });
             });
             services.AddMediatR(typeof(List.Handler).Assembly);
             //inject AutoMapper into Application project and tell it where the assemblies are located
             services.AddAutoMapper(typeof(List.Handler));
+            services.AddSignalR();
             services.AddControllers(opt => {
                     //Every request requires a authticated user
                     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -85,6 +88,23 @@ namespace API {
                     ValidateAudience = false,
                     ValidateIssuer = false
                     };
+                    //Do something with the Token when we receive it
+                    opt.Events = new JwtBearerEvents {
+
+                        //Specific Event OnMessagedReceived
+                        OnMessageReceived = context => {
+                            //get accessToken
+                            var accessToken = context.Request.Query["access_token"];
+                            //get path
+                            var path = context.HttpContext.Request.Path;
+
+                            //Make sure we have access token and the path starts with /chat
+                            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chat"))) {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             //**END: Identity Service Config**
@@ -122,6 +142,9 @@ namespace API {
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
+                //letting our application know that when we reach this /chat endpoint
+                // it will map to the SignalR hub
+                endpoints.MapHub<ChatHub>("/chat");
             });
         }
     }
