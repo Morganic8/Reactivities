@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Activities;
 using Application.Interfaces;
+using Application.Profiles;
 using API.Middleware;
 using API.SignalR;
 using AutoMapper;
@@ -115,6 +116,8 @@ namespace API {
             services.AddScoped<IUserAccessor, UserAccessor>();
             //Inject this into the application where we need to
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
+
+            services.AddScoped<IProfileReader, ProfileReader>();
 
             //Configuration is being injected into the Startup constructor
             //We can use Config to get the user-secrets - set the type in the class

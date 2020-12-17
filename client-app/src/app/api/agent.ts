@@ -22,6 +22,7 @@ axios.interceptors.request.use(
   }
 );
 
+//Intercept responses
 axios.interceptors.response.use(undefined, (error) => {
   if (error.message === 'Network Error' && !error.response) {
     toast.error('Network error - make sure API is running');
@@ -69,6 +70,7 @@ const requests = {
   },
 };
 
+//Used in Activity Store
 const Activities = {
   list: (): Promise<IActivity[]> => requests.get('/activities'),
   details: (id: string) => requests.get(`/activities/${id}`),
@@ -80,6 +82,8 @@ const Activities = {
   unattend: (id: string) => requests.del(`/activities/${id}/attend`),
 };
 
+//Used in User Store
+
 const User = {
   current: (): Promise<IUser> => requests.get('/user'),
   login: (user: IUserFormValues): Promise<IUser> =>
@@ -88,6 +92,7 @@ const User = {
     requests.post(`/user/register`, user),
 };
 
+//User in Profile Store
 const Profiles = {
   get: (username: string): Promise<IProfile> =>
     requests.get(`/profiles/${username}`),
@@ -97,6 +102,12 @@ const Profiles = {
   deletePhoto: (id: string) => requests.del(`/photos/${id}`),
   editProfile: (profile: Partial<IProfile>) =>
     requests.put(`/profiles`, profile),
+  follow: (username: string) =>
+    requests.post(`/profiles/${username}/follow`, {}),
+  //set these actions inside of the store now
+  unfollow: (username: string) => requests.del(`/profiles/${username}/follow`),
+  listFollowings: (username: string, predicate: string) =>
+    requests.get(`profiles/${username}/follow?predicate=${predicate}`),
 };
 
 export default {

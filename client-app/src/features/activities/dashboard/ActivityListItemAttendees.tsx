@@ -1,9 +1,14 @@
 import React from 'react';
-import { Popup, Item, List } from 'semantic-ui-react';
+import { Popup, Item, List, Image } from 'semantic-ui-react';
 import { IAttendee } from '../../../app/models/activity';
 interface IProps {
   attendees: IAttendee[];
 }
+
+const styles = {
+  borderColor: 'orange',
+  borderWidth: 2,
+};
 
 const ActivityListItemAttendees: React.FC<IProps> = ({ attendees }) => {
   return (
@@ -13,10 +18,12 @@ const ActivityListItemAttendees: React.FC<IProps> = ({ attendees }) => {
           <Popup
             header={attendee.displayName}
             trigger={
-              <Item.Image
+              <Image
                 size="mini"
                 circular
                 src={attendee.image || '/assets/user.png'}
+                bordered
+                style={attendee.following ? styles : null}
               />
             }
           />
