@@ -31,7 +31,7 @@ namespace Infrastructure.Security {
                 //adds all claims
                 Subject = new ClaimsIdentity(claims),
                 //When token expires - 7 days
-                Expires = DateTime.Now.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(7),
 
                 //add credentials
                 SigningCredentials = creds

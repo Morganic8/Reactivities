@@ -10,6 +10,7 @@ import {
   observable,
   reaction,
   runInAction,
+  toJS,
 } from 'mobx';
 import { SyntheticEvent } from 'react';
 import { toast } from 'react-toastify';
@@ -89,7 +90,7 @@ export default class ActivityStore {
   //Create Hub connection
   @action createHubConnection = (activityId: string) => {
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl('http://localhost:5000/chat', {
+      .withUrl(process.env.REACT_APP_API_CHAT_URL!, {
         //sends token as query
         accessTokenFactory: () => this.rootStore.commonStore.token!,
       })
@@ -179,7 +180,9 @@ export default class ActivityStore {
     let activity = this.getActivity(id);
     if (activity) {
       this.activity = activity;
-      return activity;
+      //activity here is an observable, we should not do that
+      //instead use the mobx method toJS to convert observable to an object
+      return toJS(activity);
     } else {
       this.loadingInitial = true;
       try {
